@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,11 +34,14 @@ namespace Users.API
         {
             services.AddDbContext<AppDbContext>(options =>
                 options.UseInMemoryDatabase("InMemoryDatabase"));
-            services.AddScoped<UserRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             services.AddCors();
 
             services.AddControllers();
+
+            services.AddAutoMapper();
+
 
             var key = Encoding.ASCII.GetBytes(Settings.Secret);
 
@@ -60,7 +64,7 @@ namespace Users.API
             });        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, UserRepository userRepository)
+         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IUserRepository userRepository)
         {
 
             userRepository.Add(

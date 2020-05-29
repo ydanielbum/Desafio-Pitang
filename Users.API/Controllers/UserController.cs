@@ -1,7 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Users.API.Dtos;
 using Users.API.Models;
 using Users.API.Repositories;
 using Users.API.Services;
@@ -12,52 +15,68 @@ namespace Users.API.Controllers
     [Route("")]
     public class UserController : ControllerBase
     {
-         private readonly UserRepository _userRepository;
+         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public UserController(UserRepository userRepository)
+
+        public UserController(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         [HttpPost]
-        [Route("login")]
-        public async Task<ActionResult<dynamic>> Authenticate(User model)
+        [Route("signIn")]
+        public async Task<ActionResult<dynamic>> SignIn(UserLoginDto model)
         {
             try
             {
-                // Get the user
-                var user = await _userRepository.GetAsync(model.Email, model.Password);
 
-                // Verifica se o usuário existe
+               var userLogin = _mapper.Map<User>(model);
+               var user = await _userRepository.GetAsync(userLogin.Email, userLogin.Password);
+
                 if (user == null)
-                    return NotFound(new { message = "Usuário ou senha inválidos" });
+                    return NotFound(new { message = "Invalid e-mail or password" });
 
-                // Gera o Token
-                var token = TokenService.GenerateToken(user);
-
-                // Oculta a senha
-                user.Password = "";
+                var result = _mapper.Map<UserLoggedDto>(user);
+                result.Token = TokenService.GenerateToken(user);
                 
-                // Retorna os dados
-                return new
-                {
-                    user = user,
-                    token = token
-                };
+                return Ok(result);
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {               
-                throw;
+                return this.StatusCode(StatusCodes.Status500InternalServerError, e.Message);               
             }            
         }
 
+        [HttpPost]
+        [Route("signup")]
+        public async Task<IActionResult> SignUp(UserSignUpDto model)
+        {
+            try
+            {
+                var user = _mapper.Map<User>(model);
+
+                _userRepository.Add(user);
+                await _userRepository.SaveChangesAsync();
+               
+                return Created("","Criado com Sucesso!");
+               
+
+            }
+            catch (System.Exception e)
+            {               
+                return this.StatusCode(StatusCodes.Status500InternalServerError, e.Message);               
+            }            
+        }
 
         [HttpGet]
         [Route("me")]
         [Authorize]
         public async Task<ActionResult> Authenticated() 
         {
-            var result = await _userRepository.GetByEmailAsync(User.Identity.Name);
+            var user = await _userRepository.GetByEmailAsync(User.Identity.Name);
+            var result = _mapper.Map<UserDto>(user);
 
             return Ok(result);
         }

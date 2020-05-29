@@ -15,21 +15,10 @@ namespace Users.API.Repositories
             _context = context;
         }
 
-        public void Add<T>(T entity) where T : class
+         public void Add<User>(User user)
         {
-            _context.Add(entity);
+            _context.Add(user);
         }
-
-        public void Update<T>(T entity) where T : class
-        {
-            _context.Update(entity);
-        }
-
-        public void Delete<T>(T entity) where T : class
-        {
-            _context.Remove(entity);
-        }
-
         public async Task<User> GetAsync(string email, string password)
         {
             return await _context.Users.Where(x => x.Email.ToLower() == email.ToLower() && x.Password == password).FirstOrDefaultAsync();                          
@@ -37,12 +26,7 @@ namespace Users.API.Repositories
 
         public async Task<User> GetByEmailAsync(string email)
         {
-            return await _context.Users.Where(x => x.Email.ToLower() == email.ToLower()).FirstOrDefaultAsync();                         
-        }
-
-        public async Task<List<User>> GetAllAsync()
-        {
-            return await _context.Users.ToListAsync();
+            return await _context.Users.Where(x => x.Email.ToLower() == email.ToLower()).FirstOrDefaultAsync();                     
         }
 
         public async Task<bool> SaveChangesAsync()
@@ -50,9 +34,6 @@ namespace Users.API.Repositories
            return (await _context.SaveChangesAsync()) > 0;
         }
 
-        Task<User> IUserRepository.GetAsync(string email, string password)
-        {
-            throw new System.NotImplementedException();
-        }
+       
     }
 }

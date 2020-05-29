@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Users.API.Models;
 using Users.API.Repositories;
@@ -7,16 +9,15 @@ using Users.API.Services;
 namespace Users.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("")]
     public class UserController : ControllerBase
     {
-         private readonly IUserRepository _userRepository;
+         private readonly UserRepository _userRepository;
 
-        public UserController(IUserRepository userRepository)
+        public UserController(UserRepository userRepository)
         {
             _userRepository = userRepository;
         }
-
 
         [HttpPost]
         [Route("login")]
@@ -47,8 +48,18 @@ namespace Users.API.Controllers
             catch (System.Exception)
             {               
                 throw;
-            }
-            
+            }            
+        }
+
+
+        [HttpGet]
+        [Route("me")]
+        [Authorize]
+        public async Task<ActionResult> Authenticated() 
+        {
+            var result = await _userRepository.GetByEmailAsync(User.Identity.Name);
+
+            return Ok(result);
         }
     }
 }

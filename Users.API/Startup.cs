@@ -69,7 +69,10 @@ namespace Users.API
                 LastName = "World",
                 Email = "hello@world.com",
                 Password = "hunter2"
-            });           
+            });
+            
+            userRepository.SaveChangesAsync();   
+           
 
             if (env.IsDevelopment())
             {

@@ -40,12 +40,6 @@ namespace Users.API.Controllers
 
                 var result = _mapper.Map<UserLoggedDto>(user);
                 result.Token = TokenService.GenerateToken(user);
-                if (result.Token != null)
-                {
-                    user.Last_Login = DateTime.Now;
-                    _userRepository.Update(user);
-                    await _userRepository.SaveChangesAsync();
-                }
                 
                 return Ok(result);
             }

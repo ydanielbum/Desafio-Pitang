@@ -47,9 +47,6 @@ namespace Users.API
 
             services.AddAutoMapper();
 
-            
-
-
             var key = Encoding.ASCII.GetBytes(Settings.Secret);
 
             services.AddAuthentication(x =>
@@ -116,6 +113,7 @@ namespace Users.API
                     User user = await userRepository.GetByEmailAsync(email);
                     user.Last_Login = DateTime.Now;
                     userRepository.Update(user);
+                    await userRepository.SaveChangesAsync();
                 }
             });  
            

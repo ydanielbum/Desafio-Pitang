@@ -26,6 +26,7 @@ namespace Users.API
 {
     public class Startup
     {
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -45,6 +46,8 @@ namespace Users.API
             services.AddControllers();
 
             services.AddAutoMapper();
+
+            
 
 
             var key = Encoding.ASCII.GetBytes(Settings.Secret);
@@ -73,11 +76,20 @@ namespace Users.API
                         if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
                         {
                             context.Response.Headers.Add("Token-Expired", "true");
-                                var bytes = Encoding.UTF8.GetBytes("Unauthorized - Token Expired");
-                                context.Response.Body.WriteAsync(bytes,0,bytes.Length);
                         }
                         return Task.CompletedTask;
                     }
+                };
+            });
+
+            services.AddMvc()
+            .ConfigureApiBehaviorOptions(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    var problems = new CustomBadRequest(context);
+
+                    return new BadRequestObjectResult(problems);
                 };
             });        
         }
@@ -94,7 +106,18 @@ namespace Users.API
                 Password = "hunter2"
             });
             
-            userRepository.SaveChangesAsync();   
+            userRepository.SaveChangesAsync(); 
+
+            app.Use(async (context, next) => {
+                await next.Invoke();
+                if (context.User.Identity.IsAuthenticated)
+                {
+                    var email = context.User.Identity.Name;
+                    User user = await userRepository.GetByEmailAsync(email);
+                    user.Last_Login = DateTime.Now;
+                    userRepository.Update(user);
+                }
+            });  
            
 
             if (env.IsDevelopment())

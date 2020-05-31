@@ -6,14 +6,14 @@ namespace Users.API.Dtos
 {
     public class UserSignUpDto
     {
-        [Required]
+        [Required (ErrorMessage="Missing Fields!")]
         public string FirstName { get; set; }
-        [Required]
+        [Required (ErrorMessage="Missing Fields!")]
         public string LastName { get; set; }
-        [Required]
-        [EmailAddress]
+        [Required (ErrorMessage="Missing Fields!")]
+        [EmailAddress (ErrorMessage="Invalid Fields!")]
         public string Email { get; set; }
-        [Required]
+        [Required (ErrorMessage="Missing Fields!")]
         public string Password { get; set; }
         public List<Phone> Phones { get; set; }
     }

@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Users.API.Models;
 
 namespace Users.API.Repositories
@@ -16,8 +18,12 @@ namespace Users.API.Repositories
         }
 
          public void Add<User>(User user)
-        {
+        { 
             _context.Add(user);
+        }
+        public void Update<User>(User user)
+        {
+            _context.Update(user);
         }
         public async Task<User> GetAsync(string email, string password)
         {
@@ -31,8 +37,18 @@ namespace Users.API.Repositories
 
         public async Task<bool> SaveChangesAsync()
         {
+            var AddedEntities = _context.ChangeTracker.Entries<User>().Where(E => E.State == EntityState.Added).ToList();
+
+            AddedEntities.ForEach(E =>
+            {
+                E.Property("Created_At").CurrentValue = DateTime.Now;
+                E.Property("Last_Login").CurrentValue = DateTime.Now;
+            });
+
+             
            return (await _context.SaveChangesAsync()) > 0;
         }
+
 
         public async Task<bool> VerifyEmailExists(string email)
         {

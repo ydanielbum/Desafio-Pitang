@@ -6,6 +6,7 @@ namespace Users.API.Repositories
     public interface IUserRepository
     {
         void Add<User>(User user);
+        void Update<User>(User user);
         Task<bool> SaveChangesAsync();
         Task<User> GetAsync(string email, string password);
         Task<User> GetByEmailAsync(string email);

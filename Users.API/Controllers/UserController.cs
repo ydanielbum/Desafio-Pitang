@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -12,7 +13,7 @@ using Users.API.Services;
 namespace Users.API.Controllers
 {
     [ApiController]
-    [Route("")]
+    [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
@@ -27,19 +28,24 @@ namespace Users.API.Controllers
 
         [HttpPost]
         [Route("signIn")]
-        public async Task<ActionResult<dynamic>> SignIn(UserLoginDto model)
-        {          
-            
+        public async Task<ActionResult> SignIn(UserLoginDto model)
+        {
+
             try
-            {
-               var userLogin = _mapper.Map<User>(model);
-               var user = await _userRepository.GetAsync(userLogin.Email, userLogin.Password);
+            {        
+               var user = await _userRepository.GetAsync(model.Email, model.Password);
 
                 if (user == null)
                     return NotFound(new  { message = "Invalid e-mail or password", errorCode = StatusCodes.Status404NotFound });
 
                 var result = _mapper.Map<UserLoggedDto>(user);
                 result.Token = TokenService.GenerateToken(user);
+                if (result.Token != null)
+                {
+                    user.Last_Login = DateTime.Now;
+                    _userRepository.Update(user);
+                    await _userRepository.SaveChangesAsync();
+                }
                 
                 return Ok(result);
             }
@@ -55,7 +61,7 @@ namespace Users.API.Controllers
         {
             try
             {
-                var user = _mapper.Map<User>(model);
+                var user = _mapper.Map<User>(model);              
 
                 if (await _userRepository.VerifyEmailExists(user.Email) )
                 	return BadRequest(new  { message = "Email Already Exists", errorCode = StatusCodes.Status400BadRequest });
@@ -63,7 +69,7 @@ namespace Users.API.Controllers
                 _userRepository.Add(user);
                 await _userRepository.SaveChangesAsync();
                
-                return Created("","Criado com Sucesso!");
+                return Created("","Success!");
             }
             catch (System.Exception e)
             {               
@@ -73,9 +79,23 @@ namespace Users.API.Controllers
 
         [HttpGet]
         [Route("me")]
-        [Authorize]
         public async Task<ActionResult> Authenticated() 
         {
+            bool tokenExpired = false;
+                       
+            if(!User.Identity.IsAuthenticated)
+            {
+
+                bool.TryParse( Response.Headers["Token-Expired"], out tokenExpired );
+
+                if (tokenExpired)
+                {
+                    return this.StatusCode(StatusCodes.Status401Unauthorized, new  { message = "Unauthorized - Token Expired", errorCode = StatusCodes.Status401Unauthorized });
+                }
+ 
+                return this.StatusCode(StatusCodes.Status401Unauthorized, new  { message = "Unauthorized", errorCode = StatusCodes.Status401Unauthorized });
+            }
+
             var user = await _userRepository.GetByEmailAsync(User.Identity.Name);
             var result = _mapper.Map<UserDto>(user);
 

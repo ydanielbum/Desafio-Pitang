@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Users.API.Models
@@ -10,5 +11,8 @@ namespace Users.API.Models
         public string Email { get; set; }
         public string Password { get; set; }
         public List<Phone> Phones { get; set; }
+        public DateTime Created_At { get; set; }
+        public DateTime Last_Login { get; set; }
+        public string Token { get; set; }
     }
 }

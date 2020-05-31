@@ -34,6 +34,14 @@ namespace Users.API.Repositories
            return (await _context.SaveChangesAsync()) > 0;
         }
 
-       
+        public async Task<bool> VerifyEmailExists(string email)
+        {
+            var emailExists = await _context.Users.Where(x => x.Email.ToLower() == email.ToLower()).FirstOrDefaultAsync();
+            if (emailExists != null){
+                return true;
+            }
+
+            return false;
+        }   
     }
 }

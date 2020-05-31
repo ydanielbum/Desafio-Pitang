@@ -9,5 +9,6 @@ namespace Users.API.Repositories
         Task<bool> SaveChangesAsync();
         Task<User> GetAsync(string email, string password);
         Task<User> GetByEmailAsync(string email);
+        Task<bool> VerifyEmailExists(string email);
     }
 }

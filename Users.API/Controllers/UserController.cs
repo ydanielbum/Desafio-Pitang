@@ -15,7 +15,7 @@ namespace Users.API.Controllers
     [Route("")]
     public class UserController : ControllerBase
     {
-         private readonly IUserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
 
 
@@ -28,15 +28,15 @@ namespace Users.API.Controllers
         [HttpPost]
         [Route("signIn")]
         public async Task<ActionResult<dynamic>> SignIn(UserLoginDto model)
-        {
+        {          
+            
             try
             {
-
                var userLogin = _mapper.Map<User>(model);
                var user = await _userRepository.GetAsync(userLogin.Email, userLogin.Password);
 
                 if (user == null)
-                    return NotFound(new { message = "Invalid e-mail or password" });
+                    return NotFound(new  { message = "Invalid e-mail or password", errorCode = StatusCodes.Status404NotFound });
 
                 var result = _mapper.Map<UserLoggedDto>(user);
                 result.Token = TokenService.GenerateToken(user);
@@ -57,12 +57,13 @@ namespace Users.API.Controllers
             {
                 var user = _mapper.Map<User>(model);
 
+                if (await _userRepository.VerifyEmailExists(user.Email) )
+                	return BadRequest(new  { message = "Email Already Exists", errorCode = StatusCodes.Status400BadRequest });
+
                 _userRepository.Add(user);
                 await _userRepository.SaveChangesAsync();
                
                 return Created("","Criado com Sucesso!");
-               
-
             }
             catch (System.Exception e)
             {               

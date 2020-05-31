@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Users.API.Models;
+using Users.API.Util;
 
 namespace Users.API.Services
 {
@@ -19,7 +20,7 @@ namespace Users.API.Services
                 {
                     new Claim(ClaimTypes.Name, user.Email.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddHours(2),
+                Expires = DateTime.UtcNow.AddMinutes(2),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

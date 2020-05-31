@@ -1,4 +1,4 @@
-namespace Users.API
+namespace Users.API.Util
 {
     public class Settings
     {

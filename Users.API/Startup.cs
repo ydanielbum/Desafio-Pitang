@@ -93,31 +93,7 @@ namespace Users.API
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
          public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IUserRepository userRepository)
-        {
-
-            userRepository.Add(
-            new User() {
-                FirstName = "Hello",
-                LastName = "World",
-                Email = "hello@world.com",
-                Password = "hunter2"
-            });
-            
-            userRepository.SaveChangesAsync(); 
-
-            app.Use(async (context, next) => {
-                await next.Invoke();
-                if (context.User.Identity.IsAuthenticated)
-                {
-                    var email = context.User.Identity.Name;
-                    User user = await userRepository.GetByEmailAsync(email);
-                    user.Last_Login = DateTime.Now;
-                    userRepository.Update(user);
-                    await userRepository.SaveChangesAsync();
-                }
-            });  
-           
-
+        {         
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

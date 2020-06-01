@@ -93,6 +93,10 @@ namespace Users.API.Controllers
             var user = await _userRepository.GetByEmailAsync(User.Identity.Name);
             var result = _mapper.Map<UserDto>(user);
 
+            user.Last_Login = DateTime.Now;
+            _userRepository.Update(user);
+            await _userRepository.SaveChangesAsync();
+         
             return Ok(result);
         }
     }
